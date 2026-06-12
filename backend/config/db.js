@@ -1,14 +1,20 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'flutter_pi2',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
 });
 
-module.exports = pool;
+module.exports = {
+  query: async (text, params = []) => {
+    let sql = text;
+
+    params.forEach((_, index) => {
+      sql = sql.replace('?', `$${index + 1}`);
+    });
+
+    const result = await pool.query(sql, params);
+
+    return [result.rows];
+  }
+};
