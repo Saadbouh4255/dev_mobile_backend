@@ -17,10 +17,10 @@ exports.createCategory = async (req, res) => {
       return res.status(400).json({ error: 'name_fr, name_ar, and name_en are required' });
     }
     const [result] = await pool.query(
-      'INSERT INTO categories (name_fr, name_ar, name_en, icon) VALUES (?, ?, ?, ?)',
+      'INSERT INTO categories (name_fr, name_ar, name_en, icon) VALUES (?, ?, ?, ?) RETURNING id',
       [name_fr, name_ar, name_en, icon || 'category']
     );
-    const [rows] = await pool.query('SELECT * FROM categories WHERE id = ?', [result.insertId]);
+    const [rows] = await pool.query('SELECT * FROM categories WHERE id = ?', [result[0].id]);
     res.status(201).json(rows[0]);
   } catch (err) {
     console.error('Error creating category:', err);

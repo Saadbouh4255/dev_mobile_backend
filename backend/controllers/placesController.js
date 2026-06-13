@@ -6,7 +6,7 @@ exports.getPlaces = async (req, res) => {
       SELECT p.*, c.name_fr as category_name_fr, c.name_ar as category_name_ar, c.name_en as category_name_en
       FROM places p
       LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.is_active = 1
+      WHERE p.is_active = TRUE
     `;
     const params = [];
 
@@ -54,10 +54,10 @@ exports.createPlace = async (req, res) => {
     const image = req.file ? `/uploads/${req.file.filename}` : null;
     const [result] = await pool.query(
       `INSERT INTO places (category_id, name_fr, name_ar, name_en, description_fr, description_ar, description_en, google_maps_url, latitude, longitude, image)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
       [category_id, name_fr, name_ar, name_en, description_fr || null, description_ar || null, description_en || null, google_maps_url || null, latitude || null, longitude || null, image]
     );
-    const [rows] = await pool.query('SELECT * FROM places WHERE id = ?', [result.insertId]);
+    const [rows] = await pool.query('SELECT * FROM places WHERE id = ?', [result[0].id]);
     res.status(201).json(rows[0]);
   } catch (err) {
     console.error('Error creating place:', err);
